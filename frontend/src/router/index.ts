@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import HomeView from "@/views/HomeView.vue";
-import LoginView from "@/views/Login.vue";
-import RegisterView from "@/views/Register.vue";
+import LoginView from "@/views/LoginView.vue";
+import RegisterView from "@/views/RegisterView.vue";
 import CampaignsView from "@/views/CampaignsView.vue";
 
 const routes = [

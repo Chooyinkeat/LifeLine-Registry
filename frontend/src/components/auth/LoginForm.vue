@@ -1,19 +1,43 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
+import Validator from "@/libs/validation";
 
 const email = ref("");
 const password = ref("");
 const showPassword = ref(false);
 const isLoading = ref(false);
 
+// Check validation:
+const isEmailValid = computed(() => {
+  return Validator.isEmailValid(email.value);
+});
+
+const isPasswordValid = computed(() => {
+  return Validator.isPasswordStrong(password.value);
+});
+
+const isFormValid = computed(() => {
+  return isEmailValid.value && isPasswordValid.value;
+});
+
+// submit login form
 const login = async () => {
+  if (!isFormValid.value) return;
+
   isLoading.value = true;
-  console.log("Email:", email.value);
-  console.log("Password:", password.value);
-  // Here you would call your Nest.js API
-  setTimeout(() => {
+
+  try {
+    console.log("Email:", email.value);
+    console.log("Password:", password.value);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  } catch (error) {
+    console.error("Login failed:", error);
+  } finally {
     isLoading.value = false;
-  }, 1000);
+  }
 };
 </script>
 
@@ -75,9 +99,21 @@ const login = async () => {
                 v-model="email"
                 type="email"
                 placeholder="you@example.com"
-                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                class="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all"
+                :class="[
+                  email && !isEmailValid
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-primary-500',
+                ]"
                 required
               />
+
+              <p
+                v-if="email && !isEmailValid"
+                class="mt-1 text-sm text-red-500"
+              >
+                Please enter a valid email address
+              </p>
             </div>
           </div>
 
@@ -171,7 +207,7 @@ const login = async () => {
 
           <button
             type="submit"
-            :disabled="isLoading"
+            :disabled="!isFormValid || isLoading"
             class="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             <span v-if="!isLoading">Sign In</span>
