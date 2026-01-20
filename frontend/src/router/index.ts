@@ -10,15 +10,12 @@ const routes = [
     path: "/",
     component: AuthLayout,
     children: [
+      { path: "", component: HomeView }, // "/" → Home
       { path: "home", component: HomeView },
       { path: "login", component: LoginView },
       { path: "register", component: RegisterView },
       { path: "campaigns", component: CampaignsView },
     ],
-  },
-  {
-    path: "/home",
-    component: HomeView,
   },
 ];
 
