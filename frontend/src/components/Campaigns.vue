@@ -1,9 +1,22 @@
 <script setup lang="ts">
+import { useRouter } from "vue-router";
 import type { Campaign } from "@/types/Campaign";
+import { useAuth } from "@/composables/useAuth";
 
-const props = defineProps<{
+defineProps<{
   campaigns: Campaign[];
 }>();
+
+const router = useRouter();
+const { isAuthenticated, isVolunteer } = useAuth();
+
+function handleJoin() {
+  if (!isAuthenticated.value) {
+    router.push("/login");
+    return;
+  }
+  router.push("/campaigns");
+}
 </script>
 
 <template>
@@ -95,21 +108,22 @@ const props = defineProps<{
               </div>
             </div>
             <button
+              @click="handleJoin"
               class="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
             >
-              Join Campaign
+              {{ isAuthenticated && isVolunteer ? "Join Campaign" : "View Campaigns" }}
             </button>
           </div>
         </div>
       </div>
 
       <div class="text-center mt-10">
-        <a
-          href="/campaigns"
+        <RouterLink
+          to="/campaigns"
           class="inline-block px-8 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg"
         >
           View All Campaigns
-        </a>
+        </RouterLink>
       </div>
     </div>
   </section>

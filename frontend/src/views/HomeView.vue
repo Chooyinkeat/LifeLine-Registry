@@ -1,51 +1,35 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import Hero from "@/components/Hero.vue"; // <-- import your component
+import { ref, onMounted } from "vue";
+import { fetchCampaigns } from "@/services/campaigns";
+import type { Campaign } from "@/types/Campaign";
+import Hero from "@/components/Hero.vue";
 import Stats from "@/components/Stats.vue";
 import Campaigns from "@/components/Campaigns.vue";
 import Features from "@/components/Features.vue";
 
-const campaigns = ref([
-  {
-    id: 1,
-    title: "Emergency Relief Drive",
-    description:
-      "Collecting essential supplies for families affected by recent flooding",
-    status: "Active",
-    volunteers: 45,
-    location: "Downtown Area",
-    urgency: "High",
-  },
-  {
-    id: 2,
-    title: "Community Cleanup Day",
-    description: "Join us in cleaning up local parks and public spaces",
-    status: "Active",
-    volunteers: 32,
-    location: "Central Park",
-    urgency: "Medium",
-  },
-  {
-    id: 3,
-    title: "Food Bank Support",
-    description: "Volunteers needed to organize and distribute food items",
-    status: "Active",
-    volunteers: 28,
-    location: "Community Center",
-    urgency: "Medium",
-  },
-]);
+const campaigns = ref<Campaign[]>([]);
+const loading = ref(true);
+
+onMounted(async () => {
+  try {
+    const all = await fetchCampaigns("Active");
+    campaigns.value = all.slice(0, 3);
+  } catch {
+    campaigns.value = [];
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-    <!-- Hero section -->
     <Hero />
-    <!-- Stats Section -->
     <Stats />
-    <!-- Active Campaigns Section -->
-    <Campaigns :campaigns="campaigns" />
-    <!-- Features Section -->
+    <div v-if="loading" class="py-16 text-center text-gray-500">
+      Loading campaigns...
+    </div>
+    <Campaigns v-else :campaigns="campaigns" />
     <Features />
   </div>
 </template>

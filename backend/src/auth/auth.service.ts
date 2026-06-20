@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './auth.entity';
@@ -15,37 +19,56 @@ export class AuthService {
   ) {}
 
   async register(createUserDto: CreateUserDto) {
-    const { email, password } = createUserDto;
-    // Check if user exists
+    const { email, password, name, role } = createUserDto;
     const existing = await this.userRepo.findOne({ where: { email } });
     if (existing) {
-      throw new Error('User already exists');
+      throw new ConflictException('User already exists');
     }
-    // Hash password
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = this.userRepo.create({
       email,
       password: hashedPassword,
+      name,
+      role,
     });
-    return this.userRepo.save(user);
+    const saved = await this.userRepo.save(user);
+    return this.buildAuthResponse(saved);
   }
 
   async login(loginUserDto: LoginUserDto) {
     const { email, password } = loginUserDto;
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate JWT token
-    const payload = { id: user.id, email: user.email };
-    const token = this.jwtService.sign(payload);
+    return this.buildAuthResponse(user);
+  }
 
-    return { token };
+  async findById(id: number) {
+    const user = await this.userRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return this.sanitizeUser(user);
+  }
+
+  private buildAuthResponse(user: User) {
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return {
+      token: this.jwtService.sign(payload),
+      user: this.sanitizeUser(user),
+    };
+  }
+
+  private sanitizeUser(user: User) {
+    const { password: _, ...rest } = user;
+    return rest;
   }
 }

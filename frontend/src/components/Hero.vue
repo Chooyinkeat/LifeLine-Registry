@@ -1,4 +1,6 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { RouterLink } from "vue-router";
+</script>
 
 <!-- Hero Section -->
 <template>
@@ -23,18 +25,18 @@
           faster. Make a real impact.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="/register"
+          <RouterLink
+            to="/register"
             class="px-8 py-4 bg-white text-primary-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
             Join as Volunteer
-          </a>
-          <a
-            href="/campaigns"
+          </RouterLink>
+          <RouterLink
+            to="/campaigns"
             class="px-8 py-4 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-400 transition-colors border-2 border-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
             Create Campaign
-          </a>
+          </RouterLink>
         </div>
       </div>
     </div>

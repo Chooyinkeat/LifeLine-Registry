@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import axios from "axios";
 import { useRouter } from "vue-router";
 import { auth, googleProvider, githubProvider } from "@/libs/firebase";
 import { signInWithPopup } from "firebase/auth";
 import Validator from "@/libs/validation";
 import Swal from "sweetalert2";
+import { useAuth } from "@/composables/useAuth";
+import axios from "axios";
 
 const email = ref("");
 const password = ref("");
 const showPassword = ref(false);
 const isLoading = ref(false);
+const router = useRouter();
+const { login } = useAuth();
 
-// submit login method
 const submitLogin = async () => {
   if (!Validator.isEmailValid(email.value)) {
     Swal.fire({
@@ -23,30 +25,29 @@ const submitLogin = async () => {
     return;
   }
 
-  // 3. Check password strength
-  if (!Validator.isPasswordStrong(password.value)) {
-    Swal.fire({
-      icon: "warning",
-      title: "Weak Password",
-      html: "Password must be at least 8 characters long,<br>include uppercase, lowercase, a number, and a special character.",
-    });
-    return;
-  }
-
   isLoading.value = true;
   try {
-    console.log("Email:", email.value);
-    console.log("Password:", password.value);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await login(email.value, password.value);
+    await Swal.fire({
+      icon: "success",
+      title: "Welcome back!",
+      text: "You have signed in successfully.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+    router.push("/campaigns");
   } catch (error) {
-    console.error("Login failed:", error);
+    const message =
+      axios.isAxiosError(error) && error.response?.data?.message
+        ? Array.isArray(error.response.data.message)
+          ? error.response.data.message.join(", ")
+          : error.response.data.message
+        : "Login failed. Please check your credentials.";
+    Swal.fire({ icon: "error", title: "Login Failed", text: message });
   } finally {
     isLoading.value = false;
   }
 };
-
-const router = useRouter();
 // Google login handler
 const handleGoogleSignIn = async () => {
   try {

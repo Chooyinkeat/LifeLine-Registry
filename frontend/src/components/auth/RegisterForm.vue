@@ -1,25 +1,26 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import axios from "axios";
 import { useRouter } from "vue-router";
 import { auth, googleProvider, githubProvider } from "@/libs/firebase";
 import { signInWithPopup } from "firebase/auth";
 import Validator from "@/libs/validation";
 import Swal from "sweetalert2";
+import { useAuth } from "@/composables/useAuth";
+import type { UserRole } from "@/types/Auth";
+import axios from "axios";
 
-// Form fields
 const name = ref("");
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const userType = ref("volunteer");
+const userType = ref<UserRole>("volunteer");
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const isLoading = ref(false);
+const router = useRouter();
+const { register } = useAuth();
 
-// Submit register method
 const submitRegister = async () => {
-  // 1. Check if passwords match
   if (password.value !== confirmPassword.value) {
     Swal.fire({
       icon: "error",
@@ -29,7 +30,6 @@ const submitRegister = async () => {
     return;
   }
 
-  // 2. Check email
   if (!Validator.isEmailValid(email.value)) {
     Swal.fire({
       icon: "error",
@@ -39,7 +39,6 @@ const submitRegister = async () => {
     return;
   }
 
-  // 3. Check password strength
   if (!Validator.isPasswordStrong(password.value)) {
     Swal.fire({
       icon: "warning",
@@ -49,28 +48,29 @@ const submitRegister = async () => {
     return;
   }
 
-  // ✅ All validations passed
   isLoading.value = true;
-
-  console.log("Name:", name.value);
-  console.log("Email:", email.value);
-  console.log("User Type:", userType.value);
-  console.log("Password:", password.value);
-
-  // Simulate API call
-  setTimeout(() => {
-    isLoading.value = false;
-
-    // Success message
-    Swal.fire({
+  try {
+    await register(name.value, email.value, password.value, userType.value);
+    await Swal.fire({
       icon: "success",
       title: "Account Created",
       text: "You have successfully registered!",
+      timer: 1500,
+      showConfirmButton: false,
     });
-  }, 1000);
+    router.push("/campaigns");
+  } catch (error) {
+    const message =
+      axios.isAxiosError(error) && error.response?.data?.message
+        ? Array.isArray(error.response.data.message)
+          ? error.response.data.message.join(", ")
+          : error.response.data.message
+        : "Registration failed. Please try again.";
+    Swal.fire({ icon: "error", title: "Registration Failed", text: message });
+  } finally {
+    isLoading.value = false;
+  }
 };
-
-const router = useRouter();
 // Google login handler
 const handleGoogleSignIn = async () => {
   try {

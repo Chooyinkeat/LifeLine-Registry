@@ -10,10 +10,10 @@ const routes = [
     path: "/",
     component: AuthLayout,
     children: [
-      { path: "", component: HomeView }, // "/" → Home
+      { path: "", component: HomeView },
       { path: "home", component: HomeView },
-      { path: "login", component: LoginView },
-      { path: "register", component: RegisterView },
+      { path: "login", component: LoginView, meta: { guest: true } },
+      { path: "register", component: RegisterView, meta: { guest: true } },
       { path: "campaigns", component: CampaignsView },
     ],
   },
@@ -22,4 +22,13 @@ const routes = [
 export const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem("token");
+  if (to.meta.guest && token) {
+    next("/campaigns");
+    return;
+  }
+  next();
 });

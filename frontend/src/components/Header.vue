@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
+import { useAuth } from "@/composables/useAuth";
+
+const router = useRouter();
+const { isAuthenticated, user, logout } = useAuth();
+
+function handleLogout() {
+  logout();
+  router.push("/");
+}
 </script>
 
 <template>
@@ -8,7 +17,6 @@ import { RouterLink } from "vue-router";
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
-        <!-- Logo and Brand -->
         <RouterLink
           to="/home"
           class="flex items-center space-x-3 hover:opacity-90 transition-opacity"
@@ -38,7 +46,6 @@ import { RouterLink } from "vue-router";
           </div>
         </RouterLink>
 
-        <!-- Navigation -->
         <nav class="hidden md:flex items-center space-x-1">
           <RouterLink
             to="/home"
@@ -54,39 +61,34 @@ import { RouterLink } from "vue-router";
           >
             Campaigns
           </RouterLink>
-          <RouterLink
-            to="/login"
-            class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-20 transition-colors border border-white border-opacity-30"
-            active-class="bg-white bg-opacity-20"
-          >
-            Login
-          </RouterLink>
-          <RouterLink
-            to="/register"
-            class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-primary-600 hover:bg-gray-100 transition-colors shadow-md"
-          >
-            Register
-          </RouterLink>
-        </nav>
 
-        <!-- Mobile Menu Button -->
-        <button
-          class="md:hidden p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
+          <template v-if="isAuthenticated">
+            <span class="px-3 py-2 text-sm text-primary-100">
+              Hi, {{ user?.name }}
+            </span>
+            <button
+              @click="handleLogout"
+              class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-20 transition-colors border border-white border-opacity-30"
+            >
+              Logout
+            </button>
+          </template>
+          <template v-else>
+            <RouterLink
+              to="/login"
+              class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-20 transition-colors border border-white border-opacity-30"
+              active-class="bg-white bg-opacity-20"
+            >
+              Login
+            </RouterLink>
+            <RouterLink
+              to="/register"
+              class="px-4 py-2 rounded-lg text-sm font-medium bg-white text-primary-600 hover:bg-gray-100 transition-colors shadow-md"
+            >
+              Register
+            </RouterLink>
+          </template>
+        </nav>
       </div>
     </div>
   </header>
